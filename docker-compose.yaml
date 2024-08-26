@@ -1,0 +1,30 @@
+# version: '3'
+services:
+  web:
+    build:
+      context: .
+    ports:
+      - 8000:80
+    volumes:
+      - ./app:/code/app:rw
+
+  db:
+    container_name: db
+    image: mariadb:latest
+    environment:
+      TZ: UTC
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_DATABASE: "inkomoko"
+    volumes:
+      - "./docker/mysql/data:/var/lib/mysql"
+    ports:
+      - "3306:3306"
+
+  adminer:
+    image: adminer:latest
+    environment:
+      ADMINER_PLUGINS: "tables-filter tinymce"
+      ADMINER_DESIGN: "lucas-sandery"
+      ADMINER_DEFAULT_SERVER: "db"
+    ports:
+      - 9999:8080
