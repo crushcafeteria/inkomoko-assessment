@@ -1,11 +1,25 @@
-from typing import Union
-from fastapi import FastAPI, Request
-import requests
-import json
-
+from datetime import datetime
+from typing import Any
+from fastapi import FastAPI, Request, Depends
+import requests, json
 from .models import DataItem
+from .database import engine, Base, SessionLocal
+from sqlalchemy.orm import Session
+from .schemas import DataItemSchema
 
 app = FastAPI()
+
+# Migrate database
+Base.metadata.create_all(bind=engine)
+
+
+# Dependency for getting a database session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 @app.get("/")
@@ -36,17 +50,24 @@ def sample_data():
 
 
 @app.post("/process_webhook")
-async def process_webhook(request: Request):
-    payload = await request.body()
+async def process_webhook(request: Request, db: Session = Depends(get_db)) -> Any:
+    # Prepare payload
+    payload: dict = await request.body()
     payload = format_data_keys(json.loads(payload))
 
-    # Convert payload to DataItem
     try:
+        # Build data model from data
         data_item = DataItem(**payload)
+
+        # Save to DB
+        db.add(data_item)
+        db.commit()
+        db.refresh(data_item)
+
+        return data_item
+
     except Exception as e:
         return {"error": str(e)}
-
-    return data_item
 
 
 def format_data_keys(payload: dict) -> dict:
@@ -80,5 +101,19 @@ def format_data_keys(payload: dict) -> dict:
 
         # Assemble data with corrected key
         data[new_key] = value
+
+    # Encode JSON fields
+    data["attachments"] = json.dumps(data["attachments"])
+    data["geolocation"] = json.dumps(data["geolocation"])
+    data["tags"] = json.dumps(data["tags"])
+    data["notes"] = json.dumps(data["notes"])
+    data["validation_status"] = json.dumps(data["validation_status"])
+
+    # Format dates
+    data["starttime"] = datetime.fromisoformat(data["starttime"])
+    data["endtime"] = datetime.fromisoformat(data["endtime"])
+
+    # Replace primary key with external_id
+    data["external_id"] = data.pop("id")
 
     return data
