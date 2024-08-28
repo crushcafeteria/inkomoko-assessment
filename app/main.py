@@ -1,7 +1,9 @@
 from datetime import datetime
+import time
 from typing import Any
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, BackgroundTasks
 import requests, json
+from .util import save_record
 from .models import DataItem
 from .database import engine, Base, SessionLocal
 from sqlalchemy.orm import Session
@@ -10,6 +12,7 @@ from .schemas import DataItemSchema
 app = FastAPI()
 
 # Migrate database
+time.sleep(5)
 Base.metadata.create_all(bind=engine)
 
 
@@ -22,22 +25,25 @@ def get_db():
         db.close()
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "Wor"}
+@app.get("/dataset", summary="Show all data in the database")
+def database_contents(db: Session = Depends(get_db)):
+    dataset = db.query(DataItem).all()
+    return dataset
 
 
-@app.post("/register_webhook")
+@app.post("/register_webhook", summary="Register webhook URL")
 def register_url():
     url = "http://dev.inkomoko.com:1055/register_webhook"
-    # payload = json.dumps({"url": "https://inkomoko.loca.lt/api"})
-    payload = json.dumps({"url": "https://inkomoko.requestcatcher.com/test"})
+
+    payload = json.dumps({"url": "https://inkomoko.loca.lt/process_webhook"})
+    # payload = json.dumps({"url": "https://inkomoko.requestcatcher.com/test"})
+
     headers = {"Content-Type": "application/json"}
     response = requests.post(url, headers=headers, data=payload)
     return json.loads(response.text)
 
 
-@app.get("/sample_data")
+@app.get("/sample_data", summary="Preview some sample data")
 def sample_data():
     url = "https://kf.kobotoolbox.org/api/v2/assets/aW9w8jHjn4Cj8SSQ5VcojK/data.json"
     payload = ""
@@ -49,8 +55,10 @@ def sample_data():
     return json.loads(response.text)
 
 
-@app.post("/process_webhook")
-async def process_webhook(request: Request, db: Session = Depends(get_db)) -> Any:
+@app.post("/process_webhook", summary="Receive data via webhook")
+async def process_webhook(
+    request: Request, background_tasks: BackgroundTasks, db: Session = Depends(get_db)
+) -> Any:
     # Prepare payload
     payload: dict = await request.body()
     payload = format_data_keys(json.loads(payload))
@@ -59,12 +67,14 @@ async def process_webhook(request: Request, db: Session = Depends(get_db)) -> An
         # Build data model from data
         data_item = DataItem(**payload)
 
-        # Save to DB
-        db.add(data_item)
-        db.commit()
-        db.refresh(data_item)
+        # Save record in background task
+        # Prevent blocking main thread
+        background_tasks.add_task(save_record, db, data_item)
 
-        return data_item
+        return {
+            "status": "OK",
+            "msg": "Record successfully received. Processing in the background.",
+        }
 
     except Exception as e:
         return {"error": str(e)}
