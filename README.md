@@ -32,7 +32,9 @@ You can access get all the items in the database in JSON format at this link:
 
 - **Dataset Viewer** - <http://172.104.118.166:8000/dataset>
 
-You can also access Adminer for more DBMS features using the details below:
+## SQL Schema
+
+A sample `schema.sql` fil has been attached in the project root. To import this file, you can access Adminer using the details below and use its Import feature:
 
 - Adminer Link: <http://172.104.118.166:9999>
 - Username: `root`
@@ -46,3 +48,5 @@ In order to receive requests on `localhost`, you need to run `localtunnel` to al
 ```
 lt --port 8000 -s inkomoko
 ```
+
+Please adjust the subdomain correctly and make sure to register it to receive webhook data.
