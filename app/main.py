@@ -2,6 +2,7 @@ from datetime import datetime
 import time
 from typing import Any
 from fastapi import FastAPI, Request, Depends, BackgroundTasks
+from starlette.responses import RedirectResponse
 import requests, json
 from .util import save_record
 from .models import DataItem
@@ -23,6 +24,12 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+@app.get("/")
+async def redirect():
+    response = RedirectResponse(url="/dataset")
+    return response
 
 
 @app.get("/dataset", summary="Show all data in the database")
