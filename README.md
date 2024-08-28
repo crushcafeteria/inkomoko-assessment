@@ -1,6 +1,6 @@
-- Demo Link: <https://example.com>
-- Swagger API Documentation: <http://localhost:8888/docs>
-- Adminer Link: <http://localhost:9999>
+- Demo Link: <http://172.104.118.166:8000/dataset>
+- Swagger API Documentation: <http://172.104.118.166:8000/docs>
+- Adminer Link: <http://172.104.118.166:9999>
 
 ## Running the application
 
@@ -30,14 +30,14 @@ You can inspect the Docker container laters by opening `Dockerfile`
 
 You can access get all the items in the database in JSON format at this link:
 
-- **Dataset Viewer** - <http://localhost:8000/dataset>
+- **Dataset Viewer** - <http://172.104.118.166:8000/dataset>
 
 You can also access Adminer for more DBMS features using the details below:
 
-- Adminer Link: <http://localhost:9999>
-- Username: root
-- Password: root
-- Database Name: inkomoko
+- Adminer Link: <http://172.104.118.166:9999>
+- Username: `root`
+- Password: `root`
+- Database Name: `inkomoko`
 
 ## Tunneling via `localtunnel`
 
@@ -46,4 +46,3 @@ In order to receive requests on `localhost`, you need to run `localtunnel` to al
 ```
 lt --port 8000 -s inkomoko
 ```
-

@@ -32,11 +32,9 @@ def database_contents(db: Session = Depends(get_db)):
 
 
 @app.post("/register_webhook", summary="Register webhook URL")
-def register_url():
+def register_url(webhook_url: str = "http://172.104.118.166:8000/process_webhook"):
     url = "http://dev.inkomoko.com:1055/register_webhook"
-
-    payload = json.dumps({"url": "https://inkomoko.loca.lt/process_webhook"})
-    # payload = json.dumps({"url": "https://inkomoko.requestcatcher.com/test"})
+    payload = json.dumps({"url": webhook_url})
 
     headers = {"Content-Type": "application/json"}
     response = requests.post(url, headers=headers, data=payload)
