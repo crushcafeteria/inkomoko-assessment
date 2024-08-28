@@ -4,7 +4,7 @@ services:
     build:
       context: .
     ports:
-      - 8001:80
+      - 8000:80
     volumes:
       - ./app:/code/app:rw
 
@@ -17,8 +17,6 @@ services:
       MYSQL_DATABASE: "inkomoko"
     volumes:
       - "./docker/mysql/data:/var/lib/mysql"
-    ports:
-      - "33060:3306"
 
   adminer:
     image: adminer:latest
