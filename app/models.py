@@ -12,7 +12,8 @@ class DataItem(Base):
     starttime = Column(DateTime)
     endtime = Column(DateTime)
     cd_survey_date = Column(String(254))
-    group_mx5fl16_cd_biz_status = Column(String(254))
+    cd_biz_status = Column(String(254))
+    bd_biz_operating = Column(String(254))
     version = Column(String(254))
     meta_instanceID = Column(String(254))
     xform_id_string = Column(String(254))
@@ -27,8 +28,8 @@ class DataItem(Base):
     submitted_by = Column(String(254))
 
     section_a = relationship("SectionA", backref="dataset")
-    # section_b = relationship("SectionB", backref="dataset")
-    # section_c = relationship("SectionC", backref="dataset")
+    section_b = relationship("SectionB", backref="dataset")
+    section_c = relationship("SectionC", backref="dataset")
 
 
 class SectionA(Base):

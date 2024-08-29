@@ -56,7 +56,8 @@ class DataItemSchema(BaseModel):
     starttime: datetime
     endtime: datetime
     cd_survey_date: str
-    group_mx5fl16_cd_biz_status: str
+    cd_biz_status: str
+    bd_biz_operating: str
     version: str
     meta_instanceID: str
     xform_id_string: str
@@ -70,5 +71,8 @@ class DataItemSchema(BaseModel):
     validation_status: dict
     submitted_by: Optional[str] = None
     section_a: SectionASchema
-    # section_b: SectionBSchema
-    # section_c: SectionCSchema
+    section_b: SectionBSchema
+    section_c: SectionCSchema
+
+    class Config:
+        orm_mode = True
