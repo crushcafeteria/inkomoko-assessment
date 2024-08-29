@@ -4,7 +4,8 @@ from typing import Any
 from fastapi import FastAPI, Request, Depends, BackgroundTasks
 from starlette.responses import RedirectResponse
 import requests, json
-from .models import DataItem
+from app.crud import clean_data_item
+from .models import DataItem, SectionA, SectionB, SectionC
 from .database import engine, Base
 from .dependencies import get_db
 from . import crud
@@ -56,15 +57,20 @@ async def process_webhook(
 ) -> Any:
     # Prepare payload
     payload: dict = await request.body()
-    payload = format_data_keys(json.loads(payload))
+    payload = crud.clean_data_item(json.loads(payload))
+    # return payload["section_a"]
 
     try:
-        # Build data model from data
-        data_item = DataItem(**payload)
-
         # Save record in background task
         # Prevent blocking main thread
-        background_tasks.add_task(crud.create_record, db, data_item)
+        background_tasks.add_task(
+            crud.create_record,
+            db,
+            payload["parent"],
+            payload["section_a"],
+            payload["section_b"],
+            payload["section_c"],
+        )
 
         return {
             "status": "OK",
@@ -73,52 +79,3 @@ async def process_webhook(
 
     except Exception as e:
         return {"error": str(e)}
-
-
-def format_data_keys(payload: dict) -> dict:
-    """
-    Format the keys in the given data dictionary by replacing '/' with '_' and
-    removing any leading and ending '_' and '__.
-
-    Args:
-        payload (dict): The dictionary to be formatted
-
-    Returns:
-        dict: The formatted dictionary
-    """
-
-    data = {}
-    for key, value in payload.items():
-        # Replace the / with _ in the key
-        new_key: str = key.replace("/", "_")
-
-        # Remove preceding __
-        if new_key.startswith("__"):
-            new_key = key[2:]
-
-        # Remove preceding _
-        if new_key.startswith("_"):
-            new_key = key[1:]
-
-        # Fix Version field
-        if new_key == "version__":
-            new_key = "version"
-
-        # Assemble data with corrected key
-        data[new_key] = value
-
-    # Encode JSON fields
-    data["attachments"] = json.dumps(data["attachments"])
-    data["geolocation"] = json.dumps(data["geolocation"])
-    data["tags"] = json.dumps(data["tags"])
-    data["notes"] = json.dumps(data["notes"])
-    data["validation_status"] = json.dumps(data["validation_status"])
-
-    # Format dates
-    data["starttime"] = datetime.fromisoformat(data["starttime"])
-    data["endtime"] = datetime.fromisoformat(data["endtime"])
-
-    # Replace primary key with external_id
-    data["external_id"] = data.pop("id")
-
-    return data

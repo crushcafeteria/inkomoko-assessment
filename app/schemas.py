@@ -4,19 +4,30 @@ from typing import List, Optional, Any
 from datetime import datetime
 
 
-class DataItemSchema(BaseModel):
+class SectionASchema(BaseModel):
     id: Optional[int]
-    external_id: int
-    formhub_uuid: str
-    starttime: datetime
-    endtime: datetime
-    cd_survey_date: str
     sec_a_unique_id: str
     sec_a_cd_biz_country_name: str
     sec_a_cd_biz_region_name: str
+    parent_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class SectionBSchema(BaseModel):
+    id: Optional[int]
     sec_b_bda_name: str
     sec_b_cd_cohort: str
     sec_b_cd_program: str
+    parent_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class SectionCSchema(BaseModel):
+    id: Optional[int]
     sec_c_cd_client_name: str
     sec_c_cd_client_id_manifest: str
     sec_c_cd_location: str
@@ -32,6 +43,19 @@ class DataItemSchema(BaseModel):
     sec_c_cd_client_status: str
     sec_c_cd_sole_income_earner: str
     sec_c_cd_howrespble_pple: int
+    parent_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class DataItemSchema(BaseModel):
+    id: Optional[int]
+    external_id: int
+    formhub_uuid: str
+    starttime: datetime
+    endtime: datetime
+    cd_survey_date: str
     group_mx5fl16_cd_biz_status: str
     version: str
     meta_instanceID: str
@@ -45,3 +69,6 @@ class DataItemSchema(BaseModel):
     notes: str
     validation_status: dict
     submitted_by: Optional[str] = None
+    section_a: SectionASchema
+    # section_b: SectionBSchema
+    # section_c: SectionCSchema
