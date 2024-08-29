@@ -4,26 +4,17 @@ from typing import Any
 from fastapi import FastAPI, Request, Depends, BackgroundTasks
 from starlette.responses import RedirectResponse
 import requests, json
-from .util import save_record
 from .models import DataItem
-from .database import engine, Base, SessionLocal
+from .database import engine, Base
+from .dependencies import get_db
+from . import crud
 from sqlalchemy.orm import Session
-from .schemas import DataItemSchema
 
 app = FastAPI()
 
 # Migrate database
 time.sleep(5)
 Base.metadata.create_all(bind=engine)
-
-
-# Dependency for getting a database session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @app.get("/")
@@ -34,8 +25,7 @@ async def redirect():
 
 @app.get("/dataset", summary="Show all data in the database")
 def database_contents(db: Session = Depends(get_db)):
-    dataset = db.query(DataItem).all()
-    return dataset
+    return crud.get_all_items(db)
 
 
 @app.post("/register_webhook", summary="Register webhook URL")
@@ -74,7 +64,7 @@ async def process_webhook(
 
         # Save record in background task
         # Prevent blocking main thread
-        background_tasks.add_task(save_record, db, data_item)
+        background_tasks.add_task(crud.create_record, db, data_item)
 
         return {
             "status": "OK",
