@@ -46,8 +46,6 @@ If you want to access the container bash terminal, please use the command below:
 docker compose exec web bash
 ```
 
-#### How to register the webhook
-
 #### How to manually extract data from Kobo
 
 Toe manually extract data from the API:
@@ -128,4 +126,3 @@ To inspect the unit tests, see the `test_main.py` file.
 ## Assumptions
 
 In case you are running this application locally, you can use `ngrok` or `localtunnel` to bridge your LAN with the public internet and receive webhook messages.
-
