@@ -88,6 +88,33 @@ A sample `schema.sql` fil has been attached in the project root. To import this 
 - Password: `root`
 - Database Name: `inkomoko`
 
+## Automated Deployments
+
+We use Laravel Envoy taskrunner to enable quick deployments. You can read more about Envoy by visiting their website.
+
+First, make sure that you have copied your public key to the target server. Also ensure you have Docker installed and running on the target machine and all required ports have been opened.
+
+Here is a list of all external ports used by this application.
+
+- Port 8000: FastAPI REST Server
+- Port 9999: Adminer Database UI
+
+Next, ensure you have Composer installed in the local machine, then install the packages with:
+
+```
+composer install
+```
+
+A `composer.json` file is included if you want to inspect which packages will be installed.
+
+To deploy the application, run the following command:
+
+```
+vendor/bin/envoy run deploy
+```
+
+A deployment file `Envoy.blade.php` has been included if you want to inspect which commands will be executed in your target server.
+
 ## Running Tests
 
 To run unit tests, use the following command:
@@ -97,3 +124,8 @@ pytest
 ```
 
 To inspect the unit tests, see the `test_main.py` file.
+
+## Assumptions
+
+In case you are running this application locally, you can use `ngrok` or `localtunnel` to bridge your LAN with the public internet and receive webhook messages.
+
