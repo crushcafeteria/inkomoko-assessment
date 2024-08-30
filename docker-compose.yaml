@@ -6,7 +6,7 @@ services:
     ports:
       - 8000:80
     volumes:
-      - ./app:/code/app:rw
+      - ./:/code:rw
 
   db:
     container_name: db

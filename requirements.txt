@@ -4,3 +4,6 @@ requests
 sqlalchemy
 uvicorn
 pymysql
+pytest
+httpx
+pytest-asyncio
