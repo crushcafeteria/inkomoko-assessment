@@ -30,7 +30,7 @@ def database_contents(db: Session = Depends(get_db)):
 
 
 @app.post("/register_webhook", summary="Register webhook URL")
-def register_url(webhook_url: str = "http://172.104.118.166:8000/process_webhook"):
+def register_webhook(webhook_url: str = "http://172.104.118.166:8000/process_webhook"):
     url = "http://dev.inkomoko.com:1055/register_webhook"
     payload = json.dumps({"url": webhook_url})
 
@@ -39,8 +39,8 @@ def register_url(webhook_url: str = "http://172.104.118.166:8000/process_webhook
     return json.loads(response.text)
 
 
-@app.get("/sample_data", summary="Preview some sample data")
-def sample_data():
+@app.get("/sample_data", summary="Preview some sample data from KoboToolbox")
+def extract_data_from_kobo():
     return fetch_data_from_kobo()
 
 
@@ -66,16 +66,18 @@ async def process_webhook(
 
         return {
             "status": "OK",
-            "msg": "Record successfully received. Processing in the background.",
+            "msg": "Record successfully received for processing...",
         }
-
     except Exception as e:
         return {"error": str(e)}
 
 
 @app.get("/extract_records", response_description="Extract records from JSON endpoint")
 def extract_records(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+
+    print("MESSAGE => Extracting records...")
     records = fetch_data_from_kobo()
+    progress = []
 
     for row in records["results"]:
         try:
@@ -93,14 +95,14 @@ def extract_records(background_tasks: BackgroundTasks, db: Session = Depends(get
                 payload["section_c"],
             )
 
-            print(
-                f"MESSAGE => Successfully queued {payload['parent']['external_id']} for saving..."
-            )
+            msg = f"Successfully extracted record {payload['parent']['external_id']} for saving..."
+            progress.append(msg)
+            print(f"MESSAGE => {msg}")
 
         except Exception as e:
             return {"error": str(e)}
 
     return {
         "status": "OK",
-        "msg": "Record successfully received. Processing in the background.",
+        "logs": progress,
     }

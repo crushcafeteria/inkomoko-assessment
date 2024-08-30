@@ -30,6 +30,10 @@ def get_all_items(db: Session):
     )
 
 
+def find_record(db: Session, pk: int):
+    return db.query(DataItem).filter(DataItem.external_id == pk).first()
+
+
 def create_record(
     db: Session,
     data_item: dict,
@@ -37,32 +41,40 @@ def create_record(
     section_b: dict,
     section_c: dict,
 ):
+
+    # Check record exists
     """
     Create a new record in the database.
 
-    This function will create a new record in the database from the given
-    dictionaries, and then save each record's section_a, section_b, and section_c
-    in separate tables.
+    This function will check if a record already exists by external_id. If it
+    does, it will not create a new record. Otherwise, it will create a new record
+    and save its associated form sections in separate tables.
 
     :param db: The database session to use.
-    :param data_item: The dictionary of values for the DataItem model.
-    :param section_a: The dictionary of values for the SectionA model.
-    :param section_b: The dictionary of values for the SectionB model.
-    :param section_c: The dictionary of values for the SectionC model.
-    :return: The dictionary of values for the DataItem model.
+    :param data_item: The data item to save.
+    :param section_a: The form section A data to save.
+    :param section_b: The form section B data to save.
+    :param section_c: The form section C data to save.
+    :return: The saved data item.
     """
-    parent = DataItem(**data_item)
-    db.add(parent)
-    db.commit()
-    db.refresh(parent)
 
-    # Save form sections in separate tables
-    db.add(SectionA(**section_a, parent_id=parent.id))
-    db.add(SectionB(**section_b, parent_id=parent.id))
-    db.add(SectionC(**section_c, parent_id=parent.id))
-    db.commit()
+    # Only create record if it doesnt exist yet
+    row = find_record(db, data_item["external_id"])
+    if row is None:
+        parent = DataItem(**data_item)
+        db.add(parent)
+        db.commit()
+        db.refresh(parent)
 
-    print("OK => Record saved in database")
+        # Save form sections in separate tables
+        db.add(SectionA(**section_a, parent_id=parent.id))
+        db.add(SectionB(**section_b, parent_id=parent.id))
+        db.add(SectionC(**section_c, parent_id=parent.id))
+        db.commit()
+
+        print("MESSAGE => OK. Record saved in database")
+    else:
+        print("MESSAGE => Record already exists in database")
 
     return data_item
 
@@ -124,6 +136,8 @@ def clean_data_item(payload: dict) -> dict:
     section_a = extract_fields_by_prefix(data, "sec_a_")
     section_b = extract_fields_by_prefix(data, "sec_b_")
     section_c = extract_fields_by_prefix(data, "sec_c_")
+
+    print("MESSAGE => OK. Record cleanup successful")
 
     return {
         "parent": {
